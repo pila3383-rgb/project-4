@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brew &amp; Go</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, Roboto, 'Segoe UI', sans-serif;
+    background: #FDFBF7;
+    color: #333;
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #FDFBF7;
+    position: relative;
+    padding-bottom: 64px;
+  }
+  .app.no-nav { padding-bottom: 0; }
+
+  .header {
+    background: #6F4E37;
+    color: white;
+    padding: 16px;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .content {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #3E2723;
+    margin-bottom: 16px;
+  }
+
+  .list { display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .card .icon { font-size: 32px; }
+  .card .info { flex: 1; }
+  .card .name { font-size: 18px; font-weight: bold; }
+  .card .price {
+    font-size: 16px; color: #4CAF50; font-weight: 600; margin-top: 2px;
+  }
+
+  .btn {
+    background: #6F4E37;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+  }
+  .btn:hover { background: #5a3f2c; }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    display: flex;
+    border-top: 1px solid #e0e0e0;
+  }
+  .bottom-nav button {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #999;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .bottom-nav button.active { color: #6F4E37; }
+  .nav-icon { font-size: 22px; }
+
+  /* Checkout */
+  .selected-box {
+    background: #EFEBE9;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .selected-box .label { color: #666; font-size: 16px; margin-bottom: 8px; }
+  .selected-box .selected-name {
+    font-size: 24px; font-weight: bold; color: #3E2723;
+  }
+  .selected-box .selected-price {
+    font-size: 20px; color: #4CAF50; font-weight: bold; margin-top: 4px;
+  }
+
+  .time-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+  .time-header .clock { font-size: 20px; }
+  .time-title { font-size: 18px; font-weight: bold; }
+
+  .chips {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+  }
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: #eee;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .chip.selected {
+    background: #6F4E37;
+    color: white;
+    border-color: #6F4E37;
+  }
+
+  .spacer { flex: 1; }
+
+  .btn-large {
+    width: 100%;
+    height: 54px;
+    background: #6F4E37;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 24px;
+  }
+  .btn-large:hover { background: #5a3f2c; }
+
+  /* Bonuses */
+  .bonuses {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+  .star { font-size: 80px; margin-bottom: 16px; }
+  .bonus-text {
+    font-size: 22px;
+    font-weight: bold;
+    color: #3E2723;
+    line-height: 1.3;
+  }
+
+  /* Dialog */
+  .dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .dialog {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+  }
+  .dialog h2 { font-size: 20px; margin-bottom: 12px; }
+  .dialog p { margin-bottom: 20px; line-height: 1.5; color: #555; }
+  .dialog-actions { text-align: right; }
+  .dialog-actions button {
+    background: none;
+    border: none;
+    color: #6F4E37;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 8px 12px;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+  // ---- Данные ----
+  const menu = [
+    { name: 'Капучино',       price: 190, icon: '☕' },
+    { name: 'Латте Макиато',  price: 210, icon: '🥛' },
+    { name: 'Флэт Уайт',      price: 230, icon: '☕' },
+    { name: 'Американо',      price: 150, icon: '🖤' },
+    { name: 'Раф Кофе',       price: 250, icon: '✨' },
+  ];
+  const times = ['08:30', '08:45', '09:00', '09:15'];
+
+  // ---- Состояние ----
+  const state = {
+    screen: 'catalog',     // 'catalog' | 'checkout' | 'bonuses'
+    selectedItem: null,
+    selectedTime: '08:45',
+    showDialog: false,
+  };
+
+  // ---- Рендер ----
+  function render() {
+    let html = '';
+    if (state.screen === 'catalog')       html = renderCatalog();
+    else if (state.screen === 'checkout') html = renderCheckout();
+    else if (state.screen === 'bonuses')  html = renderBonuses();
+
+    if (state.showDialog) html += renderDialog();
+
+    document.getElementById('app').innerHTML = html;
+    attachHandlers();
+  }
+
+  function renderCatalog() {
+    return `
+      <div class="app">
+        <div class="header">Brew &amp; Go — Заказ без очереди</div>
+        <div class="content">
+          <h2 class="section-title">Выбери свой кофе:</h2>
+          <div class="list">
+            ${menu.map((item, i) => `
+              <div class="card">
+                <div class="icon">${item.icon}</div>
+                <div class="info">
+                  <div class="name">${item.name}</div>
+                  <div class="price">${item.price} ₽</div>
+                </div>
+                <button class="btn" data-action="order" data-index="${i}">Заказать</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ${renderBottomNav('catalog')}
+      </div>
+    `;
+  }
+
+  function renderCheckout() {
+    const item = state.selectedItem;
+    return `
+      <div class="app no-nav">
+        <div class="header">
+          <button class="back-btn" data-action="back">←</button>
+          <span>Оформление предзаказа</span>
+        </div>
+        <div class="content">
+          <div class="selected-box">
+            <div class="label">Выбранный напиток:</div>
+            <div class="selected-name">${item.name}</div>
+            <div class="selected-price">${item.price} ₽</div>
+          </div>
+
+          <div class="time-header">
+            <span class="clock">🕐</span>
+            <span class="time-title">Выберите время готовности:</span>
+          </div>
+          <div class="chips">
+            ${times.map(t => `
+              <button class="chip ${state.selectedTime === t ? 'selected' : ''}"
+                      data-action="select-time" data-time="${t}">${t}</button>
+            `).join('')}
+          </div>
+
+          <div class="spacer"></div>
+          <button class="btn-large" data-action="confirm">
+            Оплатить и забрать без очереди
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBonuses() {
+    return `
+      <div class="app">
+        <div class="header">Клуб Brew &amp; Go</div>
+        <div class="bonuses">
+          <div class="star">⭐</div>
+          <div class="bonus-text">До бесплатного латте — 2 заказа</div>
+        </div>
+        ${renderBottomNav('bonuses')}
+      </div>
+    `;
+  }
+
+  function renderBottomNav(active) {
+    return `
+      <div class="bottom-nav">
+        <button class="${active === 'catalog' ? 'active' : ''}"
+                data-action="tab" data-tab="catalog">
+          <span class="nav-icon">☕</span>
+          <span>Меню</span>
+        </button>
+        <button class="${active === 'bonuses' ? 'active' : ''}"
+                data-action="tab" data-tab="bonuses">
+          <span class="nav-icon">🎫</span>
+          <span>Бонусы</span>
+        </button>
+      </div>
+    `;
+  }
+
+  function renderDialog() {
+    return `
+      <div class="dialog-overlay">
+        <div class="dialog">
+          <h2>🎉 Заказ оформлен!</h2>
+          <p>Приходите к ${state.selectedTime}.<br>
+             Ваш кофе будет ждать вас на стойке без очереди!</p>
+          <div class="dialog-actions">
+            <button data-action="close-dialog">Отлично</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---- Обработчики ----
+  function attachHandlers() {
+    document.querySelectorAll('[data-action]').forEach(el => {
+      el.addEventListener('click', handleAction);
+    });
+  }
+
+  function handleAction(e) {
+    const action = e.currentTarget.dataset.action;
+
+    switch (action) {
+      case 'tab':
+        state.screen = e.currentTarget.dataset.tab;
+        break;
+
+      case 'order':
+        state.selectedItem = menu[parseInt(e.currentTarget.dataset.index, 10)];
+        state.screen = 'checkout';
+        break;
+
+      case 'back':
+        state.screen = 'catalog';
+        state.selectedItem = null;
+        break;
+
+      case 'select-time':
+        state.selectedTime = e.currentTarget.dataset.time;
+        break;
+
+      case 'confirm':
+        state.showDialog = true;
+        break;
+
+      case 'close-dialog':
+        state.showDialog = false;
+        state.screen = 'catalog';
+        state.selectedItem = null;
+        state.selectedTime = '08:45';
+        break;
+    }
+    render();
+  }
+
+  // ---- Запуск ----
+  render();
+</script>
+</body>
+</html>
